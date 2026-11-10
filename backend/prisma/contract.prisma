@@ -1,0 +1,237 @@
+// use prisma-8
+
+model Investigation {
+  id            String   @id @onCreate(uuid())
+  endpointId    String
+  endpoint      Endpoint @relation(fields: [endpointId], references: [id])
+  title         String
+  description   String?
+  status        InvestigationStatus
+  startedAt     DateTime
+  closedAt      DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @onCreate(now()) @onUpdate(now())
+  assessment    Assessment?
+  evidenceLinks InvestigationEvidence[]
+}
+
+model InvestigationEvidence {
+  investigationId String
+  evidenceId      String
+  addedAt         DateTime @default(now())
+  note            String?
+
+  investigation Investigation @relation(fields: [investigationId], references: [id])
+  evidence      Evidence      @relation(fields: [evidenceId], references: [id])
+
+  @@id([investigationId, evidenceId])
+}
+
+model Assessment {
+  id              String                   @id @onCreate(uuid())
+  investigationId String @unique
+  classification  AssessmentClassification
+  confidence      AssessmentConfidence
+  summary         String
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @onCreate(now()) @onUpdate(now())
+  investigation   Investigation            @relation(fields: [investigationId], references: [id])
+}
+
+model DnsEvent {
+  evidenceId    String  @id
+  processGuid   String?
+  processId     Int?
+  queryName     String?
+  queryType     String?
+  queryStatus   String?
+  responseCode  String?
+  answers       Json?
+  server        String?
+  evidence      Evidence @relation(fields: [evidenceId], references: [id])
+}
+
+model FileEvent {
+  evidenceId   String     @id
+  action       FileAction
+  filePath     String?
+  previousPath String?
+  fileName     String?
+  extension    String?
+  directory    String?
+  size         BigInt?
+  user         String?
+  processGuid  String?
+  processId    Int?
+  evidence     Evidence @relation(fields: [evidenceId], references: [id])
+  hashes       FileHash[]
+}
+
+model FileHash {
+  id         String        @id @onCreate(uuid())
+  evidenceId String
+  algorithm  HashAlgorithm
+  value      String
+  createdAt  DateTime      @default(now())
+  fileEvent  FileEvent     @relation(fields: [evidenceId], references: [evidenceId])
+
+  @@unique([evidenceId, algorithm])
+}
+
+model PowerShellEvent {
+  evidenceId      String  @id
+  processGuid     String?
+  processId       Int?
+  scriptBlockId   String?
+  scriptBlockText String?
+  commandLine     String?
+  hostApplication String?
+  user            String?
+  engineVersion   String?
+  runspaceId      String?
+  sequenceNumber  Int?
+  evidence        Evidence @relation(fields: [evidenceId], references: [id])
+}
+
+model NetworkEvent {
+  evidenceId          String  @id
+  processGuid         String?
+  processId           Int?
+  protocol            String?
+  initiated           Boolean?
+  sourceIp            String?
+  sourcePort          Int?
+  destinationIp       String?
+  destinationPort     Int?
+  sourceHostname      String?
+  destinationHostname String?
+  sourceIsIpv6        Boolean?
+  destinationIsIpv6   Boolean?
+
+  evidence Evidence @relation(fields: [evidenceId], references: [id])
+
+}
+
+model ProcessHash {
+  id           String        @id @onCreate(uuid())
+  evidenceId   String
+  algorithm    HashAlgorithm
+  value        String
+  createdAt    DateTime      @default(now())
+  processEvent ProcessEvent  @relation(fields: [evidenceId], references: [evidenceId])
+
+  @@unique([evidenceId, algorithm])
+}
+
+model ProcessEvent {
+  evidenceId          String   @id
+  processGuid         String?
+  processId           Int?
+  parentProcessId     Int?
+  parentProcessGuid   String?
+  imagePath           String?
+  commandLine         String?
+  currentDirectory    String?
+  user                String?
+  integrityLevel      String?
+  terminalSessionId   Int?
+  fileVersion         String?
+  description         String?
+  product             String?
+  company             String?
+  originalFileName    String?
+  evidence            Evidence @relation(fields: [evidenceId], references: [id])
+  hashes              ProcessHash[]
+}
+
+model RawTelemetry {
+  id            String    @id @onCreate(uuid())
+  endpointId    String
+  endpoint      Endpoint  @relation(fields: [endpointId], references: [id])
+  source        String
+  sourceEventId String?
+  observedAt    DateTime
+  collectedAt   DateTime
+  receivedAt   DateTime
+  payload       Json
+  createdAt     DateTime  @default(now())
+  evidence      Evidence?
+}
+
+model Evidence {
+  id            String       @id @onCreate(uuid())
+  endpointId    String
+  type          EvidenceType
+  source        String
+  sourceEventId String?
+  observedAt    DateTime
+  collectedAt   DateTime
+  receivedAt    DateTime
+  correlationId String?
+  createdAt     DateTime     @default(now())
+   rawTelemetryId     String        @unique
+  rawTelemetry       RawTelemetry  @relation(fields: [rawTelemetryId], references: [id])
+  endpoint      Endpoint     @relation(fields: [endpointId], references: [id])
+  investigationLinks InvestigationEvidence[]
+  processEvent ProcessEvent?
+  dnsEvent     DnsEvent?
+  networkEvent NetworkEvent?
+  fileEvent    FileEvent?
+  powerShellEvent PowerShellEvent?
+  @@index([endpointId], name: "Evidence_endpointId_idx")
+}
+
+model Endpoint {
+  id           String   @id @onCreate(uuid())
+  agentId      String   @unique
+  hostname     String
+  osName       String
+  osVersion    String
+  agentVersion String
+  firstSeenAt  DateTime
+  lastSeenAt   DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @onCreate(now()) @onUpdate(now())
+  evidence Evidence[]
+  rawTelemetry RawTelemetry[]
+  investigations Investigation[]
+}
+
+enum EvidenceType {
+  PROCESS
+  NETWORK
+  DNS
+  FILE
+  POWERSHELL
+}
+
+enum InvestigationStatus {
+  OPEN
+  CLOSED
+}
+
+enum AssessmentClassification {
+  UNDETERMINED
+  BENIGN
+  SUSPICIOUS
+  MALICIOUS
+}
+
+enum AssessmentConfidence {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum FileAction {
+  CREATE
+  MODIFY
+  DELETE
+  RENAME
+}
+
+enum HashAlgorithm {
+  MD5
+  SHA1
+  SHA256
+}
