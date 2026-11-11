@@ -7,7 +7,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Anis-hacker26/SignalLens/agent/internal/app"
+	"github.com/Anis-hacker26/SignalLens/agent/internal/bootstrap"
 	"github.com/Anis-hacker26/SignalLens/agent/internal/config"
 )
 
@@ -28,7 +28,7 @@ func main() {
 	)
 	defer stop()
 
-	application := app.New(cfg)
+	application := bootstrap.NewApplication(cfg)
 
 	if err := application.Run(ctx); err != nil {
 		log.Fatalf("agent stopped with error: %v", err)
