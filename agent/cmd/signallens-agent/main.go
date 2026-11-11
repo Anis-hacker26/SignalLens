@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"github.com/Anis-hacker26/SignalLens/agent/internal/app"
 	"github.com/Anis-hacker26/SignalLens/agent/internal/config"
 )
 
@@ -19,10 +21,18 @@ func main() {
 
 	log.Printf("agent configured: %s", cfg.AgentID)
 
-	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
+	ctx, stop := signal.NotifyContext(
+		context.Background(),
+		os.Interrupt,
+		syscall.SIGTERM,
+	)
+	defer stop()
 
-	<-signalChannel
+	application := app.New(cfg)
+
+	if err := application.Run(ctx); err != nil {
+		log.Fatalf("agent stopped with error: %v", err)
+	}
 
 	log.Println("SignalLens agent shutting down")
 }
