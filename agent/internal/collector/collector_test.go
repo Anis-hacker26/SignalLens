@@ -5,19 +5,21 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Anis-hacker26/SignalLens/agent/internal/event"
+	"github.com/Anis-hacker26/SignalLens/agent/internal/telemetry"
 )
 
 type fakeCollector struct {
-	events []event.Event
+	events []telemetry.RawEvent
 	err    error
 }
 
-func (c *fakeCollector) Collect(ctx context.Context) ([]event.Event, error) {
+func (c *fakeCollector) Collect(
+	ctx context.Context,
+) ([]telemetry.RawEvent, error) {
 	return c.events, c.err
 }
 
-func TestCollectorReturnsEvents(t *testing.T) {
+func TestCollectorReturnsRawEvents(t *testing.T) {
 	timestamp := time.Date(
 		2026,
 		time.November,
@@ -29,14 +31,13 @@ func TestCollectorReturnsEvents(t *testing.T) {
 		time.UTC,
 	)
 
-	expected := []event.Event{
+	expected := []telemetry.RawEvent{
 		{
-			ID:            "event-001",
-			Type:          event.TypeProcess,
-			Timestamp:     timestamp,
-			Host:          "TEST-HOST",
-			Source:        "test",
-			SourceEventID: "1",
+			EventID:   1,
+			Timestamp: timestamp,
+			Provider:  "Microsoft-Windows-Sysmon",
+			Computer:  "TEST-HOST",
+			Message:   "Process Create:",
 		},
 	}
 
@@ -53,15 +54,21 @@ func TestCollectorReturnsEvents(t *testing.T) {
 		t.Fatalf("expected 1 event, got %d", len(events))
 	}
 
-	if events[0].ID != "event-001" {
-		t.Fatalf("expected event ID event-001, got %s", events[0].ID)
+	if events[0].EventID != 1 {
+		t.Fatalf("expected event ID 1, got %d", events[0].EventID)
 	}
 
-	if events[0].Type != event.TypeProcess {
-		t.Fatalf("expected process event, got %s", events[0].Type)
+	if events[0].Provider != "Microsoft-Windows-Sysmon" {
+		t.Fatalf(
+			"expected Sysmon provider, got %s",
+			events[0].Provider,
+		)
 	}
 
-	if events[0].Source != "test" {
-		t.Fatalf("expected source test, got %s", events[0].Source)
+	if events[0].Computer != "TEST-HOST" {
+		t.Fatalf(
+			"expected computer TEST-HOST, got %s",
+			events[0].Computer,
+		)
 	}
 }
