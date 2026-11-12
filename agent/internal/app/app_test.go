@@ -2,11 +2,17 @@ package app
 
 import (
 	"context"
+	"log"
 	"testing"
 	"time"
 
 	"github.com/Anis-hacker26/SignalLens/agent/internal/config"
+	"github.com/Anis-hacker26/SignalLens/agent/internal/logging"
 )
+
+func newTestLogger() logging.Logger {
+	return logging.NewStandardLogger(log.Default())
+}
 
 func TestRunStopsWhenContextIsCancelled(t *testing.T) {
 	cfg := config.Config{
@@ -14,7 +20,8 @@ func TestRunStopsWhenContextIsCancelled(t *testing.T) {
 		BackendURL: "http://localhost:3000",
 	}
 
-	application := New(cfg)
+	logger := newTestLogger()
+	application := New(cfg, logger)
 
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -65,7 +72,8 @@ func TestRunStartsAndStopsComponents(t *testing.T) {
 	}
 
 	component := newTestComponent()
-	application := New(cfg, component)
+	logger := newTestLogger()
+	application := New(cfg, logger, component)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
