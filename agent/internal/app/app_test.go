@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"errors"
 	"log"
 	"testing"
 	"time"
@@ -65,6 +66,18 @@ func (c *testComponent) Stop(ctx context.Context) error {
 	return nil
 }
 
+type failingStartComponent struct {
+	err error
+}
+
+func (c *failingStartComponent) Start(ctx context.Context) error {
+	return c.err
+}
+
+func (c *failingStartComponent) Stop(ctx context.Context) error {
+	return nil
+}
+
 func TestRunStartsAndStopsComponents(t *testing.T) {
 	cfg := config.Config{
 		AgentID:    "test-agent-001",
@@ -105,5 +118,28 @@ func TestRunStartsAndStopsComponents(t *testing.T) {
 		}
 	case <-time.After(time.Second):
 		t.Fatal("application did not stop after context cancellation")
+	}
+}
+func TestRunReturnsErrorWhenComponentStartFails(t *testing.T) {
+	cfg := config.Config{
+		AgentID:    "test-agent-001",
+		BackendURL: "http://localhost:3000",
+	}
+
+	expectedErr := errors.New("component start failed")
+
+	component := &failingStartComponent{
+		err: expectedErr,
+	}
+
+	logger := newTestLogger()
+	application := New(cfg, logger, component)
+
+	ctx := context.Background()
+
+	err := application.Run(ctx)
+
+	if !errors.Is(err, expectedErr) {
+		t.Fatalf("expected error %v, got: %v", expectedErr, err)
 	}
 }
