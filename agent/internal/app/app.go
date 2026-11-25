@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"time"
 
 	"github.com/Anis-hacker26/SignalLens/agent/internal/component"
 	"github.com/Anis-hacker26/SignalLens/agent/internal/config"
@@ -40,8 +41,14 @@ func (a *App) Run(ctx context.Context) error {
 
 	a.logger.Info("application stopping")
 
+	shutdownCtx, cancel := context.WithTimeout(
+		context.Background(),
+		10*time.Second,
+	)
+	defer cancel()
+
 	for i := len(a.components) - 1; i >= 0; i-- {
-		if err := a.components[i].Stop(ctx); err != nil {
+		if err := a.components[i].Stop(shutdownCtx); err != nil {
 			a.logger.Error("component stop failed: %v", err)
 			return err
 		}

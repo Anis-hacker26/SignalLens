@@ -1,0 +1,103 @@
+.endpoints-page {
+  width: 100%;
+}
+
+.endpoints-page .page-header {
+  margin-bottom: 24px;
+}
+
+.endpoints-page .page-header h1 {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.endpoints-page .page-header p {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.endpoints-table-container {
+  width: 100%;
+  overflow-x: auto;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.endpoints-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.endpoints-table th {
+  padding: 13px 16px;
+  background: #f8f9fa;
+  border-bottom: 1px solid #e5e7eb;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.endpoints-table td {
+  padding: 15px 16px;
+  border-bottom: 1px solid #e5e7eb;
+  color: #374151;
+  font-size: 13px;
+  vertical-align: top;
+}
+
+.endpoints-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.endpoints-table tbody tr:hover {
+  background: #fafafa;
+}
+
+.endpoint-hostname {
+  color: #111827 !important;
+  font-weight: 600;
+}
+
+.endpoint-os-version {
+  display: block;
+  margin-top: 3px;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.common-state {
+  padding: 32px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  color: #6b7280;
+  font-size: 14px;
+  text-align: center;
+}
+
+.common-error {
+  padding: 14px 16px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-left: 3px solid #b91c1c;
+  border-radius: 6px;
+  color: #991b1b;
+  font-size: 14px;
+}
+
+@media (max-width: 768px) {
+  .endpoints-page .page-header h1 {
+    font-size: 21px;
+  }
+
+  .endpoints-table {
+    min-width: 800px;
+  }
+}

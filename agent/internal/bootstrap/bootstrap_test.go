@@ -10,6 +10,7 @@ func TestNewApplication(t *testing.T) {
 	cfg := config.Config{
 		AgentID:    "test-agent-001",
 		BackendURL: "http://localhost:3000",
+		StatePath:  "signallens-state.json",
 	}
 
 	application := NewApplication(cfg)

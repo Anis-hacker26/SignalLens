@@ -9,3 +9,11 @@ import (
 type Collector interface {
 	Collect(ctx context.Context) ([]telemetry.RawEvent, error)
 }
+
+type CursorCommitter interface {
+	Commit(recordID uint64)
+}
+
+type CursorInitializer interface {
+	SetCursor(recordID uint64)
+}
