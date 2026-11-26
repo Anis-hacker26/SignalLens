@@ -272,6 +272,92 @@ async getEvidence(investigationId: string) {
   return evidence;
 }
 
+async getTimeline(investigationId: string) {
+  const investigation =
+    await this.db.orm.public.Investigation
+      .where({ id: investigationId })
+      .first();
+
+  if (!investigation) {
+    throw new NotFoundException(
+      `Investigation ${investigationId} was not found`,
+    );
+  }
+
+  const evidenceLinks =
+    await this.db.orm.public.InvestigationEvidence
+      .where({ investigationId })
+      .all();
+
+  const timeline: any[] = [];
+
+  for (const link of evidenceLinks) {
+    const evidence =
+      await this.db.orm.public.Evidence
+        .where({ id: link.evidenceId })
+        .first();
+
+    if (!evidence) {
+      continue;
+    }
+
+    let details: any = null;
+
+    if (evidence.type === 'PROCESS') {
+      details =
+        await this.db.orm.public.ProcessEvent
+          .where({ evidenceId: evidence.id })
+          .first();
+    }
+
+    if (evidence.type === 'NETWORK') {
+      details =
+        await this.db.orm.public.NetworkEvent
+          .where({ evidenceId: evidence.id })
+          .first();
+    }
+
+    if (evidence.type === 'DNS') {
+      details =
+        await this.db.orm.public.DnsEvent
+          .where({ evidenceId: evidence.id })
+          .first();
+    }
+
+    if (evidence.type === 'FILE') {
+      details =
+        await this.db.orm.public.FileEvent
+          .where({ evidenceId: evidence.id })
+          .first();
+    }
+
+    if (evidence.type === 'POWERSHELL') {
+      details =
+        await this.db.orm.public.PowerShellEvent
+          .where({ evidenceId: evidence.id })
+          .first();
+    }
+
+    timeline.push({
+      evidenceId: evidence.id,
+      observedAt: evidence.observedAt,
+      type: evidence.type,
+      source: evidence.source,
+      sourceEventId: evidence.sourceEventId,
+      correlationId: evidence.correlationId,
+      details,
+    });
+  }
+
+  timeline.sort(
+    (a, b) =>
+      new Date(a.observedAt).getTime() -
+      new Date(b.observedAt).getTime(),
+  );
+
+  return timeline;
+}
+
 async createAssessment(
   investigationId: string,
   dto: CreateAssessmentDto,

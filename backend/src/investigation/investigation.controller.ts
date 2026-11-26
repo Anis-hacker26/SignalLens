@@ -62,6 +62,13 @@ createAssessment(
     return this.investigationService.getEvidence(investigationId);
   }
 
+    @Get(':investigationId/timeline')
+  getTimeline(
+    @Param('investigationId') investigationId: string,
+  ) {
+    return this.investigationService.getTimeline(investigationId);
+  }
+
   @Get(':investigationId/assessment')
 getAssessment(
   @Param('investigationId') investigationId: string,
